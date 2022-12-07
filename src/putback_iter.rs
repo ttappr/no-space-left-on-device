@@ -1,4 +1,5 @@
 /// This file implements a simple iterator that allows you to put back items.
+/// Other iterators don't allow this, so this is a simple wrapper around them.
 
 use std::collections::VecDeque;
 
@@ -9,6 +10,7 @@ pub struct PutBack<I, T> {
     buf  : VecDeque<T>,
 }
 impl<I: Iterator<Item=T>, T> PutBack<I, T> {
+    /// Create a new PutBack iterator.
     pub fn new(iter: I) -> Self {
         Self { iter, buf: VecDeque::new() }
     }
@@ -21,6 +23,8 @@ impl<I: Iterator<Item=T>, T> PutBack<I, T> {
 }
 impl<I: Iterator<Item=T>, T> Iterator for PutBack<I, T> {
     type Item = T;
+    /// Get the next item from the iterator. If there are any items in the
+    /// buffer, they will be returned first.
     fn next(&mut self) -> Option<Self::Item> {
         if !self.buf.is_empty() {
             self.buf.pop_front()

@@ -62,22 +62,21 @@ fn build_fs() -> Result<FSDir, Box<dyn Error>> {
         let parts = split(&line);
         
         match parts[0] {
-            "$" => {
+            "$" => {  // Command prompt.
                 match parts[1] {
-                    "cd" => {
-                        let name = parts[2];
-                        match name {
-                            ".." => {
+                    "cd" => {  // Change directory.
+                        match parts[2] {
+                            ".." => {  // Go up one directory.
                                 if cur_dir.name() != "/" {
                                     fs_stack.pop().unwrap();
                                     cur_dir = fs_stack.last().unwrap().clone();
                                 }
                             },
-                            "/" => {
+                            "/" => {  // Go to root directory.
                                 fs_stack.truncate(1);
                                 cur_dir = fs_root.clone();
                             },
-                            _ => {
+                            name => {  // Go to a subdirectory.
                                 if let Some(d) = cur_dir.get_dir(name) {
                                     fs_stack.push(d.clone());
                                     cur_dir = d.clone();
@@ -91,23 +90,23 @@ fn build_fs() -> Result<FSDir, Box<dyn Error>> {
                             },
                         }
                     },
-                    "ls" => {
+                    "ls" => {  // List directory contents.
                         while let Some(line) = lines.next() {
                             let line  = line?;
                             let parts = split(&line);
                             match parts[0] {
-                                "dir" => {
+                                "dir" => {  // Directory.
                                     let name = parts[1];
                                     if !cur_dir.contains(name) {
                                         let d = FSDir::new(name.into());
                                         cur_dir.add_dir(d);
                                     }
                                 },
-                                "$" => {
+                                "$" => {  // Go back to command prompt.
                                     lines.put_back(Ok(line));
                                     break;
                                 },
-                                size => {
+                                size => {  // File.
                                     let size = size.parse::<usize>()?;
                                     let name = parts[1];
                                     if !cur_dir.contains(name) {
